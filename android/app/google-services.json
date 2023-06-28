@@ -1,0 +1,83 @@
+{
+  "project_info": {
+    "project_number": "735959508002",
+    "firebase_url": "https://management-5ac07-default-rtdb.firebaseio.com",
+    "project_id": "management-5ac07",
+    "storage_bucket": "management-5ac07.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:735959508002:android:70128c821b85284c83967b",
+        "android_client_info": {
+          "package_name": "com.example.managementsys"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "735959508002-mm2jc6b29n7pjngc8pfeehms46abk1f2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDj1iQTW9ihiAKgw66gFr7L_ny2bmLh4T8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "735959508002-mm2jc6b29n7pjngc8pfeehms46abk1f2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "735959508002-26bl54a6oaqr7pabkbff2cfkoggoqf1q.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.managementsys"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:735959508002:android:cd1792116956b1bb83967b",
+        "android_client_info": {
+          "package_name": "com.example.studentcomplainmanagementsys"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "735959508002-mm2jc6b29n7pjngc8pfeehms46abk1f2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDj1iQTW9ihiAKgw66gFr7L_ny2bmLh4T8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "735959508002-mm2jc6b29n7pjngc8pfeehms46abk1f2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "735959508002-26bl54a6oaqr7pabkbff2cfkoggoqf1q.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.managementsys"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
