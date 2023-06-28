@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:studentcomplainmanagementsys/constants/routes.dart';
 import 'package:studentcomplainmanagementsys/views/login_view.dart';
 import 'package:studentcomplainmanagementsys/views/verify_email_view.dart';
-import 'dart:developer' as devtools show log;
 import 'firebase_options.dart';
 import 'views/registerview.dart';
 
@@ -17,8 +17,9 @@ void main() {
       ),
       home: const HomePage(),
       routes: {
-        '/login/': (context) => const LoginView(),
-        '/register/': (context) => const RegisterView(),
+        loginRoute: (context) => const LoginView(),
+        registerRoute: (context) => const RegisterView(),
+        complaintsRoute: (context) => const ComplaintView(),
       },
     ),
   );
@@ -72,8 +73,18 @@ class _ComplaintViewState extends State<ComplaintView> {
         title: const Text('Complaint UI'),
         actions: [
           PopupMenuButton<MenuAction>(
-            onSelected: (value) {
-              devtools.log(value.toString());
+            onSelected: (value) async {
+              switch (value) {
+                case MenuAction.logout:
+                  final shouldLogout = await showLogOutDialog(context);
+                  if (shouldLogout) {
+                    await FirebaseAuth.instance.signOut();
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      loginRoute,
+                      (_) => false,
+                    );
+                  }
+              }
             },
             itemBuilder: (context) {
               return const [
@@ -89,4 +100,30 @@ class _ComplaintViewState extends State<ComplaintView> {
       body: const Text('Hello World'),
     );
   }
+}
+
+Future<bool> showLogOutDialog(BuildContext context) {
+  return showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(false);
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
+            child: const Text('Log Out'),
+          ),
+        ],
+      );
+    },
+  ).then((value) => value ?? false);
 }
