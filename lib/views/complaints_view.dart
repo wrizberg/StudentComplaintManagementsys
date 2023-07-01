@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:studentcomplainmanagementsys/services/auth/auth_service.dart';
+import 'package:studentcomplainmanagementsys/services/crud/complaints_service.dart';
 
 import '../constants/routes.dart';
 import '../enums/enum_action.dart';
@@ -12,6 +13,22 @@ class ComplaintView extends StatefulWidget {
 }
 
 class _ComplaintViewState extends State<ComplaintView> {
+  late final ComplaintsService _complaintsService;
+  String get userEmail => AuthService.firebase().currentUser!.email!;
+
+  @override
+  void initState() {
+    _complaintsService = ComplaintsService();
+    _complaintsService.open();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _complaintsService.close();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,7 +61,27 @@ class _ComplaintViewState extends State<ComplaintView> {
           ),
         ],
       ),
-      body: const Text('Hello World'),
+      body: FutureBuilder(
+        future: _complaintsService.getOrCreateUser(email: userEmail),
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.done:
+              return StreamBuilder(
+                stream: _complaintsService.allComplaints,
+                builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.waiting:
+                      return const Text('Waiting for all complaints...');
+                    default:
+                      return const CircularProgressIndicator();
+                  }
+                },
+              );
+            default:
+              return const CircularProgressIndicator();
+          }
+        },
+      ),
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart';
@@ -9,8 +11,39 @@ import 'crud_exceptions.dart';
 class ComplaintsService {
   Database? _db;
 
+  List<DatabaseComplaints> _complaints = [];
+
+  static final ComplaintsService _shared = ComplaintsService._sharedInstance();
+  ComplaintsService._sharedInstance();
+  factory ComplaintsService() => _shared;
+
+  final _complaintsStreamController =
+      StreamController<List<DatabaseComplaints>>.broadcast();
+
+  Stream<List<DatabaseComplaints>> get allComplaints =>
+      _complaintsStreamController.stream;
+
+  Future<DatabaseUser> getOrCreateUser({required String email}) async {
+    try {
+      final user = await getUser(email: email);
+      return user;
+    } on CouldNotFindUser {
+      final createdUser = await createUser(email: email);
+      return createdUser;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> _cacheComplaints() async {
+    final allComplaints = await getAllComplaints();
+    _complaints = allComplaints.toList();
+    _complaintsStreamController.add(_complaints);
+  }
+
   Future<DatabaseComplaints> updateComplaints(
       {required DatabaseComplaints complaints, required String text}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     await getComplaints(id: complaints.id);
     final updatesCount = await db.update(complaintTable, {
@@ -20,11 +53,17 @@ class ComplaintsService {
     if (updatesCount == 0) {
       throw CouldNotUpdateComplaint();
     } else {
-      return await getComplaints(id: complaints.id);
+      final updatedComplaint = await getComplaints(id: complaints.id);
+      _complaints
+          .removeWhere((complaint) => complaint.id == updatedComplaint.id);
+      _complaints.add(updatedComplaint);
+      _complaintsStreamController.add(_complaints);
+      return updatedComplaint;
     }
   }
 
   Future<Iterable<DatabaseComplaints>> getAllComplaints() async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final complaints = await db.query(complaintTable);
 
@@ -33,6 +72,7 @@ class ComplaintsService {
   }
 
   Future<DatabaseComplaints> getComplaints({required int id}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final complaints = await db.query(
       complaintTable,
@@ -43,16 +83,25 @@ class ComplaintsService {
     if (complaints.isEmpty) {
       throw CouldNotFindComplaint();
     } else {
-      return DatabaseComplaints.fromRow(complaints.first);
+      final complaint = DatabaseComplaints.fromRow(complaints.first);
+      _complaints.removeWhere((complaints) => complaints.id == id);
+      _complaints.add(complaint);
+      _complaintsStreamController.add(_complaints);
+      return complaint;
     }
   }
 
   Future<int> deleteAllComplaints() async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
-    return await db.delete(complaintTable);
+    final numberOfDeletions = await db.delete(complaintTable);
+    _complaints = [];
+    _complaintsStreamController.add(_complaints);
+    return numberOfDeletions;
   }
 
   Future<void> deleteComplaint({required int id}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final deletedCount = await db.delete(
       complaintTable,
@@ -61,11 +110,15 @@ class ComplaintsService {
     );
     if (deletedCount == 0) {
       throw CouldNotDeleteComplaint();
+    } else {
+      _complaints.removeWhere((complaint) => complaint.id == id);
+      _complaintsStreamController.add(_complaints);
     }
   }
 
-  Future<DatabaseComplaints> createDatabase(
+  Future<DatabaseComplaints> createComplaint(
       {required DatabaseUser owner}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final dbUser = await getUser(email: owner.email);
     if (dbUser != owner) {
@@ -85,10 +138,14 @@ class ComplaintsService {
       text: text,
       isSyncedWithCloud: true,
     );
+    _complaints.add(complaint);
+    _complaintsStreamController.add(_complaints);
+
     return complaint;
   }
 
   Future<DatabaseUser> getUser({required String email}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final results = await db.query(
       userTable,
@@ -104,6 +161,7 @@ class ComplaintsService {
   }
 
   Future<DatabaseUser> createUser({required String email}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final results = await db.query(
       userTable,
@@ -126,6 +184,7 @@ class ComplaintsService {
   }
 
   Future<void> deleteUser({required String email}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final deletedCount = await db.delete(
       userTable,
@@ -156,6 +215,14 @@ class ComplaintsService {
     }
   }
 
+  Future<void> _ensureDbIsOpen() async {
+    try {
+      await open();
+    } on DatabaseAlreadyOpenException {
+//empty
+    }
+  }
+
   Future<void> open() async {
     if (_db != null) {
       throw DatabaseAlreadyOpenException();
@@ -169,6 +236,7 @@ class ComplaintsService {
       await db.execute(createUserTable);
 // create complaint table
       await db.execute(createComplaintTable);
+      await _cacheComplaints();
     } on MissingPlatformDirectoryException {
       throw UnableToGetDocumentDirectory();
     }
