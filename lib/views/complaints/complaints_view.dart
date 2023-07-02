@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:studentcomplainmanagementsys/services/auth/auth_service.dart';
 import 'package:studentcomplainmanagementsys/services/crud/complaints_service.dart';
 
-import '../constants/routes.dart';
-import '../enums/enum_action.dart';
+import '../../constants/routes.dart';
+import '../../enums/enum_action.dart';
 
 class ComplaintView extends StatefulWidget {
   const ComplaintView({super.key});
@@ -33,8 +33,14 @@ class _ComplaintViewState extends State<ComplaintView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Complaint UI'),
+        title: const Text('Your Complaints'),
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pushNamed(newComplaintRoute);
+            },
+            icon: const Icon(Icons.add),
+          ),
           PopupMenuButton<MenuAction>(
             onSelected: (value) async {
               switch (value) {
