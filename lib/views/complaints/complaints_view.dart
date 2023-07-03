@@ -77,6 +77,7 @@ class _ComplaintViewState extends State<ComplaintView> {
                 builder: (context, snapshot) {
                   switch (snapshot.connectionState) {
                     case ConnectionState.waiting:
+                    case ConnectionState.active:
                       return const Text('Waiting for all complaints...');
                     default:
                       return const CircularProgressIndicator();
